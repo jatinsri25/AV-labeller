@@ -2,7 +2,7 @@
 
 **NeuroLabel AI** is a next-generation semi-automated labeling tool designed for Autonomous Vehicle (AV) datasets. It leverages **State-of-the-Art Computer Vision (YOLOv8)** to pre-annotate images, allowing human annotators to refine, correct, and export high-quality datasets with minimal effort.
 
-![Dashboard Preview](screenshot.png)
+![Dashboard Preview](dashboard_preview.png)
 
 ## ✨ Key Features
 
