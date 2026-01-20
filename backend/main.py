@@ -32,8 +32,10 @@ def get_db():
     finally:
         db.close()
 
-# Load Model
-print("Loading YOLOv8 Nano model...")
+# Load YOLOv8 Model
+# Swapping models is as simple as changing the weight file string.
+# 'yolov8n.pt' is optimized for speed (CPU inference), while 'yolov8m.pt' offers higher accuracy.
+print("Loading Object Detection Model...")
 model = YOLO("yolov8n.pt") 
 print("Model loaded successfully!")
 
@@ -42,7 +44,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.get("/")
 def home():
-    return {"message": "NeuroLabel API is running. Fly mode: ON."}
+    return {"status": "active", "system": "NeuroLabel Backend Service"}
 
 @app.post("/detect")
 def detect_objects(
@@ -51,28 +53,32 @@ def detect_objects(
     db: Session = Depends(get_db)
 ):
     """
-    Receives an image, saves it, runs YOLOv8, and saves detections to DB.
+    Core inference pipeline:
+    1. Persist uploaded asset.
+    2. Register asset in database.
+    3. Execute YOLOv8 inference (support for TTA via 'enhance' flag).
+    4. Store detection metadata and return structured JSON.
     """
-    # 1. Save File to Disk
+    # Persist file
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # 2. Add Image Record to DB
+    # Create DB Record
     db_image = ImageRecord(filename=file.filename, filepath=file_path)
     db.add(db_image)
     db.commit()
     db.refresh(db_image)
 
-    # 3. Read & Process Image
-    # Re-open the saved file to ensure clean read for PIL
+    # Inference
     image = Image.open(file_path)
     
-    # Run inference with optional TTA (augment)
-    # Using slightly lower conf threshold for Medium model to catch more, slider filters them anyway
+    # Run YOLOv8 with optional Test-Time Augmentation (TTA)
+    # TTA ('enhance') increases accuracy by processing the image at multiple scales/flips,
+    # useful for detecting small or occluded objects at the cost of inference speed.
     results = model(image, augment=enhance, conf=0.2, iou=0.5)
 
-    # 4. Process & Save Results
+    # Parse Results
     detections = []
     for result in results:
         for box in result.boxes:
@@ -83,7 +89,7 @@ def detect_objects(
             
             x1, y1, x2, y2 = round(cords[0]), round(cords[1]), round(cords[2]), round(cords[3])
 
-            # Save Annotation to DB
+            # Persist Annotation
             db_annotation = Annotation(
                 image_id=db_image.id,
                 label=label,

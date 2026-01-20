@@ -5,7 +5,7 @@ import '../styles_overlay.css';
 import Sidebar from './components/Sidebar';
 import AnnotationCanvas from './components/AnnotationCanvas';
 
-// Simple UUID generator if package not available
+// Utility for generating unique session IDs for UI keys
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 interface BoundingBox {
@@ -41,11 +41,11 @@ function App() {
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.25);
   const [enhanceAccuracy, setEnhanceAccuracy] = useState<boolean>(false);
 
-  // Shortcut Listener
+  // Global Keyboard Event Listener
+  // Handles deletion of annotations via Del/Backspace
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
-        // Remove currently selected box
         setDetections(prev => prev.filter(d => d.id !== selectedId));
         selectShape(null);
       }
