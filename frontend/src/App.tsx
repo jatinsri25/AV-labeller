@@ -29,6 +29,9 @@ interface HistoryItem {
   detection_count: number;
 }
 
+// Production API URL handling
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 function App() {
   const [file, setFile] = useState<File | null>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -61,7 +64,7 @@ function App() {
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/history');
+      const res = await axios.get(`${API_URL}/history`);
       setHistory(res.data);
     } catch (err) {
       console.error("Failed to fetch history");
@@ -72,8 +75,8 @@ function App() {
     setIsLoading(true);
     setCurrentImageId(id);
     try {
-      setImageSrc(`http://127.0.0.1:8000/images/${id}`);
-      const res = await axios.get(`http://127.0.0.1:8000/annotations/${id}`);
+      setImageSrc(`${API_URL}/images/${id}`);
+      const res = await axios.get(`${API_URL}/annotations/${id}`);
 
       const mappedDetections = res.data.map((d: any) => ({
         ...d,
@@ -93,7 +96,7 @@ function App() {
 
   const deleteHistoryItem = async (id: number) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/images/${id}`);
+      await axios.delete(`${API_URL}/images/${id}`);
       setHistory(history.filter(h => h.id !== id));
       if (currentImageId === id) {
         setImageSrc(null);
@@ -126,7 +129,7 @@ function App() {
     formData.append('enhance', enhanceAccuracy.toString());
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/detect', formData, {
+      const response = await axios.post(`${API_URL}/detect`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -149,7 +152,7 @@ function App() {
   const saveAnnotations = async () => {
     if (!currentImageId) return;
     try {
-      await axios.put(`http://127.0.0.1:8000/annotations/${currentImageId}`, detections);
+      await axios.put(`${API_URL}/annotations/${currentImageId}`, detections);
       alert("Annotations saved!");
       fetchHistory();
     } catch (err) {

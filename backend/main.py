@@ -15,10 +15,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="NeuroLabel API")
 
-# Enable CORS
+# Enable CORS for Production (Allow all origins for demo purposes)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=["*"], # Allow any frontend URL (Netlify/Vercel/Render)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
