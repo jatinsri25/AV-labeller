@@ -171,8 +171,10 @@ const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({
                                     y={d.box.y1}
                                     width={d.box.x2 - d.box.x1}
                                     height={d.box.y2 - d.box.y1}
-                                    stroke={selectedId === d.id ? "#00aaff" : "#00ff00"}
-                                    strokeWidth={selectedId === d.id ? 4 : 3}
+                                    stroke={selectedId === d.id ? "#7c3aed" : "#10b981"} // Violet-600 vs Emerald-500
+                                    strokeWidth={selectedId === d.id ? 4 : 2}
+                                    shadowColor={selectedId === d.id ? "#7c3aed" : "#10b981"}
+                                    shadowBlur={selectedId === d.id ? 15 : 0}
                                     draggable
                                     onDragStart={(e) => {
                                         e.cancelBubble = true; // prevent stage drag
@@ -186,12 +188,15 @@ const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({
                                     x={d.box.x1}
                                     y={d.box.y1 - 24} // Offset text to be above box
                                     text={`${d.label} ${(d.confidence * 100).toFixed(0)}%`}
-                                    fontSize={18}
-                                    fill={selectedId === d.id ? "#00aaff" : "#00ff00"}
+                                    fontSize={16}
+                                    fill={selectedId === d.id ? "#7c3aed" : "#10b981"}
                                     fontStyle="bold"
-                                // Prevent scaling text weirdly? No, it should scale with zoom naturally
+                                    fontFamily="JetBrains Mono"
+                                    shadowColor="black"
+                                    shadowBlur={4}
                                 />
                             </React.Fragment>
+
                         ))}
                         <Transformer
                             ref={trRef}

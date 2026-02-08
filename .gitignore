@@ -33,3 +33,4 @@ frontend/node_modules/
 dist/
 .DS_Store
 uploaded_images/
+*.db

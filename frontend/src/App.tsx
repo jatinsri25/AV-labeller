@@ -45,7 +45,6 @@ function App() {
   const [enhanceAccuracy, setEnhanceAccuracy] = useState<boolean>(false);
 
   // Global Keyboard Event Listener
-  // Handles deletion of annotations via Del/Backspace
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
@@ -153,6 +152,7 @@ function App() {
     if (!currentImageId) return;
     try {
       await axios.put(`${API_URL}/annotations/${currentImageId}`, detections);
+      // Optional: Show a toast here instead of alert
       alert("Annotations saved!");
       fetchHistory();
     } catch (err) {
@@ -181,12 +181,16 @@ function App() {
   return (
     <div className="app-container">
       <header className="navbar">
-        <h1>🧠 NeuroLabel</h1>
+        <h1>NeuroLabel</h1>
         <div className="navbar-actions">
           {currentImageId && (
             <>
-              <button className="nav-btn" onClick={saveAnnotations}>💾 Save Changes</button>
-              <button className="nav-btn secondary" onClick={exportData}>⬇ Export JSON</button>
+              <button className="nav-btn" onClick={saveAnnotations}>
+                <span>💾</span> Save
+              </button>
+              <button className="nav-btn secondary" onClick={exportData}>
+                <span>⬇</span> Export
+              </button>
             </>
           )}
         </div>
@@ -197,13 +201,28 @@ function App() {
           history={history}
           onSelect={loadHistoryItem}
           onDelete={deleteHistoryItem}
+          selectedId={currentImageId}
         />
 
         <main className="main-content">
           <div className="controls-panel">
-            <div className="card upload-card">
-              <h2>1. Upload Image</h2>
-              <input type="file" onChange={handleFileChange} accept="image/*" className="file-input" />
+            {/* Upload Card */}
+            <div className="card">
+              <h2>Upload Source</h2>
+              <div className="file-input-wrapper">
+                <input
+                  type="file"
+                  id="file-upload"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="file-input"
+                  style={{ opacity: 0, position: 'absolute', top: 0, left: 0, height: '100%', width: '100%', zIndex: 2 }}
+                />
+                <div className="file-input" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</span>
+                  <span>{file ? file.name : "Drag & Drop or Click to Upload"}</span>
+                </div>
+              </div>
 
               <div className="checkbox-group">
                 <input
@@ -212,7 +231,7 @@ function App() {
                   checked={enhanceAccuracy}
                   onChange={(e) => setEnhanceAccuracy(e.target.checked)}
                 />
-                <label htmlFor="enhance">Enhance Accuracy (Slower)</label>
+                <label htmlFor="enhance">Deep Scan Mode (TTA)</label>
               </div>
 
               <button
@@ -220,14 +239,18 @@ function App() {
                 disabled={!file || isLoading}
                 className={`detect-btn ${isLoading ? 'loading' : ''}`}
               >
-                {isLoading ? 'Processing...' : '⚡ Run YOLOv8 Nano'}
+                {isLoading ? 'Processing...' : '⚡ Run Detection Protocol'}
               </button>
             </div>
 
-            <div className="card stats-card">
-              <h2>Filters</h2>
+            {/* Stats / Filter Card */}
+            <div className="card">
+              <h2>Filters & Stats</h2>
               <div className="filter-group">
-                <label>Confidence {'>'} {(confidenceThreshold * 100).toFixed(0)}%</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Confidence Threshold</span>
+                  <span style={{ color: 'var(--accent-primary)' }}>{(confidenceThreshold * 100).toFixed(0)}%</span>
+                </label>
                 <input
                   type="range"
                   min="0"
@@ -239,10 +262,9 @@ function App() {
                 />
               </div>
 
-              <h2>3. Detections ({visibleDetections.length})</h2>
-              <p className="instruction-text">Click to edit. Del to remove. Wheel to zoom.</p>
+              <h2>Objects Identified ({visibleDetections.length})</h2>
               {visibleDetections.length === 0 ? (
-                <p className="placeholder-text">No detections visible.</p>
+                <p className="placeholder-text">Awaiting Detection...</p>
               ) : (
                 <ul className="detection-list">
                   {visibleDetections.map((d) => (
@@ -261,11 +283,10 @@ function App() {
           </div>
 
           <div className="canvas-panel">
-            <h2>2. Visualization & Editing</h2>
             {isLoading && (
               <div className="loading-overlay">
                 <div className="spinner"></div>
-                <p>Processing...</p>
+                <p>RUNNING NEURAL INFERENCE...</p>
               </div>
             )}
             <AnnotationCanvas
@@ -273,10 +294,23 @@ function App() {
               detections={visibleDetections}
               setDetections={setDetections}
               onImageLoad={handleImageLoad}
-              containerDimensions={imageDimensions}
+              containerDimensions={imageDimensions} // Can be optimized to be dynamic
               selectedId={selectedId}
               selectShape={selectShape}
             />
+            {!imageSrc && !isLoading && (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                opacity: 0.5
+              }}>
+                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🖼️</span>
+                <p>Load an image to begin annotation</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -285,3 +319,4 @@ function App() {
 }
 
 export default App;
+

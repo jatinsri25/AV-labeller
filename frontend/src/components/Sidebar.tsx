@@ -12,34 +12,48 @@ interface SidebarProps {
     history: HistoryItem[];
     onSelect: (id: number) => void;
     onDelete: (id: number) => void;
+    selectedId: number | null; // Added to highlight active item
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ history, onSelect, onDelete }) => {
+const Sidebar: React.FC<SidebarProps> = ({ history, onSelect, onDelete, selectedId }) => {
     return (
         <aside className="sidebar">
             <h3>Recent Scans</h3>
-            <ul>
+            <div className="history-list">
                 {history.map(item => (
-                    <li key={item.id} className="history-item">
-                        <div className="history-info" onClick={() => onSelect(item.id)}>
-                            <span className="file-name">{item.filename}</span>
+                    <div
+                        key={item.id}
+                        className={`history-item ${selectedId === item.id ? 'active' : ''}`}
+                        onClick={() => onSelect(item.id)}
+                    >
+                        <span className="file-name" title={item.filename}>{item.filename}</span>
+                        <div className="meta">
                             <span className="badge">{item.detection_count} objs</span>
+                            <div className="actions">
+                                <span>{new Date(item.timestamp).toLocaleDateString()}</span>
+                                <button
+                                    className="delete-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Delete this scan?')) onDelete(item.id);
+                                    }}
+                                    title="Delete"
+                                >
+                                    ×
+                                </button>
+                            </div>
                         </div>
-                        <button
-                            className="delete-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (confirm('Delete this scan?')) onDelete(item.id);
-                            }}
-                        >
-                            ×
-                        </button>
-                    </li>
+                    </div>
                 ))}
-                {history.length === 0 && <p className="empty-history">No history yet.</p>}
-            </ul>
+                {history.length === 0 && (
+                    <div className="empty-state" style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                        No recent history.
+                    </div>
+                )}
+            </div>
         </aside>
     );
 };
 
 export default Sidebar;
+
